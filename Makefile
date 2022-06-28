@@ -27,8 +27,7 @@ ci: lint ## Run all the tests and code checks
 	go test $(TEST_OPTIONS) -covermode=atomic -coverprofile=coverage.txt -timeout=1m -cover -json $(SOURCE_FILES) | tparse -all -smallscreen
 
 build: ## Build a beta version
-	go build -race -o ./dist/message-cannon ./main.go
-
+    CGO_ENABLED=0 go build -o ./dist/message-cannon ./main.go
 install: ## Install to $GOPATH/src
 	go install ./...
 

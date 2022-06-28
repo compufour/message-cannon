@@ -1,0 +1,484 @@
+rabbitmq:
+  connections:
+    default:
+      dsn: 'amqp://${RABBITMQ_USER:=guest}:${RABBITMQ_PASSWORD:=guest}@${RABBITMQ_HOST:=rabbitmq}:${RABBITMQ_PORT:=5672}${RABBITMQ_VHOST:=/}'
+      timeout: 1s
+      sleep: 10s
+  exchanges:
+    fallback:
+      type: topic
+      options:
+        durable: true
+  dead_letters:
+    fallback:
+      queue:
+        name: fallback
+        options:
+          durable: false
+          args:
+            x-dead-letter-exchange: ''
+            x-message-ttl: 300000
+        bindings:
+          - routing_keys: ['#']
+            exchange: fallback
+  consumers:
+    AssyncronousNFEConsult:
+      connection: default
+      workers: 5
+      prefetch_count: 10
+      dead_letter: fallback
+      queue:
+        name: AssyncronousNFEConsult
+        options:
+          durable: true
+          args:
+            x-dead-letter-exchange: fallback
+            x-dead-letter-routing-key: AssyncronousNFEConsult
+      runner:
+        type: http
+        options:
+          url: ${CLIPP_URL}/rpc/v1/fiscal.AssyncronousNFEConsult
+          return-on-5xx: 3 # ExitNACK
+          headers:
+            Cannon-Authorization: ${CPF_CANNON_TOKEN}
+
+    PostTransmissionConsumer:
+      connection: default
+      workers: 5
+      prefetch_count: 10
+      dead_letter: fallback
+      queue:
+        name: PostTransmissionConsumer
+        options:
+          durable: true
+          args:
+            x-dead-letter-exchange: fallback
+            x-dead-letter-routing-key: PostTransmissionConsumer
+      runner:
+        type: http
+        options:
+          url: ${CLIPP_URL}/rpc/v1/fiscal.PostTransmissionConsumer
+          return-on-5xx: 3 # ExitNACK
+          headers:
+            Cannon-Authorization: ${CPF_CANNON_TOKEN}
+
+    AsyncClientCreation:
+      connection: default
+      workers: 5
+      prefetch_count: 10
+      dead_letter: fallback
+      queue:
+        name: 'AsyncClientCreation'
+        options:
+          durable: true
+          args:
+            x-dead-letter-exchange: fallback
+            x-dead-letter-routing-key: AsyncClientCreation
+      runner:
+        type: http
+        options:
+          url: ${CLIPP_URL}/rpc/v1/application.AsyncClientCreation
+          return-on-5xx: 3 # ExitNACK
+          headers:
+            Cannon-Authorization: ${CPF_CANNON_TOKEN}
+
+    GenerateReportConsumer:
+      connection: default
+      workers: 5
+      prefetch_count: 10
+      dead_letter: fallback
+      queue:
+        name: 'GenerateReportConsumer'
+        options:
+          durable: true
+          args:
+            x-dead-letter-exchange: fallback
+            x-dead-letter-routing-key: GenerateReportConsumer
+      runner:
+        type: http
+        ignore-output: true
+        options:
+          url: ${CLIPP_URL}/rpc/v1/core.GenerateReportConsumer
+          return-on-5xx: 3 # ExitNACK
+          headers:
+            Cannon-Authorization: ${CPF_CANNON_TOKEN}
+
+    RemoteClientUpdater:
+      connection: default
+      workers: 5
+      prefetch_count: 10
+      dead_letter: fallback
+      queue:
+        name: 'RemoteClientUpdater'
+        options:
+          durable: true
+          args:
+            x-dead-letter-exchange: fallback
+            x-dead-letter-routing-key: RemoteClientUpdater
+      runner:
+        type: http
+        options:
+          url: ${CLIPP_URL}/rpc/v1/payment.RemoteClientUpdater
+          return-on-5xx: 3 # ExitNACK
+          headers:
+            Cannon-Authorization: ${CPF_CANNON_TOKEN}
+
+    RemoteSubscriptionChanger:
+      connection: default
+      workers: 5
+      prefetch_count: 10
+      dead_letter: fallback
+      queue:
+        name: 'RemoteSubscriptionChanger'
+        options:
+          durable: true
+          args:
+            x-dead-letter-exchange: fallback
+            x-dead-letter-routing-key: RemoteSubscriptionChanger
+      runner:
+        type: http
+        options:
+          url: ${CLIPP_URL}/rpc/v1/application.RemoteSubscriptionChanger
+          return-on-5xx: 3 # ExitNACK
+          headers:
+            Cannon-Authorization: ${CPF_CANNON_TOKEN}
+
+    XmlRegisterConsumer:
+      connection: default
+      workers: 1
+      prefetch_count: 1
+      dead_letter: fallback
+      queue:
+        name: XmlRegisterConsumer
+        options:
+          durable: true
+          args:
+            x-dead-letter-exchange: fallback
+            x-dead-letter-routing-key: XmlRegisterConsumer
+      runner:
+        type: http
+        options:
+          url: ${CLIPP_URL}/rpc/v1/clipp.XmlRegisterConsumer
+          return-on-5xx: 3 # ExitNACK
+          headers:
+            Cannon-Authorization: ${CPF_CANNON_TOKEN}
+    SpedConsumer:
+      connection: default
+      workers: 5
+      prefetch_count: 10
+      dead_letter: fallback
+      queue:
+        name: SpedConsumer
+        options:
+          durable: true
+          args:
+            x-dead-letter-exchange: fallback
+            x-dead-letter-routing-key: SpedConsumer
+      runner:
+        type: http
+        options:
+          url: ${CLIPP_URL}/rpc/v1/clipp.SpedConsumer
+          return-on-5xx: 3 # ExitNACK
+          headers:
+            Cannon-Authorization: ${CPF_CANNON_TOKEN}
+
+    ConverterConsumer:
+      connection: default
+      workers: 1
+      prefetch_count: 10
+      dead_letter: fallback
+      queue:
+        name: ConverterConsumer
+        options:
+          durable: true
+          args:
+            x-dead-letter-exchange: fallback
+            x-dead-letter-routing-key: ConverterConsumer
+      runner:
+        type: http
+        options:
+          url: ${CLIPP_URL}/rpc/v1/inventory.ConverterConsumer
+          return-on-5xx: 3 # ExitNACK
+          headers:
+            Cannon-Authorization: ${CPF_CANNON_TOKEN}
+
+    ClientConverterConsumer:
+      connection: default
+      workers: 1
+      prefetch_count: 10
+      dead_letter: fallback
+      queue:
+        name: ClientConverterConsumer
+        options:
+          durable: true
+          args:
+            x-dead-letter-exchange: fallback
+            x-dead-letter-routing-key: ClientConverterConsumer
+      runner:
+        type: http
+        options:
+          url: ${CLIPP_URL}/rpc/v1/person.ClientConverterConsumer
+          return-on-5xx: 3 # ExitNACK
+          headers:
+            Cannon-Authorization: ${CPF_CANNON_TOKEN}
+
+    SupplierConverterConsumer:
+      connection: default
+      workers: 5
+      prefetch_count: 10
+      dead_letter: fallback
+      queue:
+        name: SupplierConverterConsumer
+        options:
+          durable: true
+          args:
+            x-dead-letter-exchange: fallback
+            x-dead-letter-routing-key: SupplierConverterConsumer
+      runner:
+        type: http
+        options:
+          url: ${CLIPP_URL}/rpc/v1/person.SupplierConverterConsumer
+          return-on-5xx: 3 # ExitNACK
+          headers:
+            Cannon-Authorization: ${CPF_CANNON_TOKEN}
+
+    C4ClientRegister:
+      connection: default
+      workers: 5
+      prefetch_count: 10
+      dead_letter: fallback
+      queue:
+        name: C4ClientRegister
+        options:
+          durable: true
+          args:
+            x-dead-letter-exchange: fallback
+            x-dead-letter-routing-key: C4ClientRegister
+      runner:
+        type: http
+        options:
+          url: ${CLIPP_URL}/rpc/v1/application.C4ClientRegister
+          return-on-5xx: 3 # ExitNACK
+          headers:
+            Cannon-Authorization: ${CPF_CANNON_TOKEN}
+
+    EcommerceConsumer:
+      connection: default
+      workers: 5
+      prefetch_count: 10
+      dead_letter: fallback
+      queue:
+        name: EcommerceConsumer
+        options:
+          durable: true
+          args:
+            x-dead-letter-exchange: fallback
+            x-dead-letter-routing-key: EcommerceConsumer
+      runner:
+        type: http
+        options:
+          url: ${CLIPP_URL}/rpc/v1/inventory.EcommerceConsumer
+          return-on-5xx: 3 # ExitNACK
+          headers:
+            Cannon-Authorization: ${CPF_CANNON_TOKEN}
+
+    MercadoLivreProductConsumer:
+      connection: default
+      workers: 5
+      prefetch_count: 10
+      dead_letter: fallback
+      queue:
+        name: MercadoLivreProductConsumer
+        options:
+          durable: true
+          args:
+            x-dead-letter-exchange: fallback
+            x-dead-letter-routing-key: MercadoLivreProductConsumer
+      runner:
+        type: http
+        options:
+          url: ${CLIPP_URL}/rpc/v1/inventory.MercadoLivreProductConsumer
+          return-on-5xx: 3 # ExitNACK
+          headers:
+            Cannon-Authorization: ${CPF_CANNON_TOKEN}
+
+    AddProductsPurchaseConsumer:
+      connection: default
+      workers: 5
+      prefetch_count: 10
+      dead_letter: fallback
+      queue:
+        name: AddProductsPurchaseConsumer
+        options:
+          durable: true
+          args:
+            x-dead-letter-exchange: fallback
+            x-dead-letter-routing-key: AddProductsPurchaseConsumer
+      runner:
+        type: http
+        options:
+          url: ${CLIPP_URL}/rpc/v1/consumers.AddProductsPurchaseConsumer
+          return-on-5xx: 3 # ExitNACK
+          headers:
+            Cannon-Authorization: ${CPF_CANNON_TOKEN}
+
+    DeleteProductsPurchaseConsumer:
+      connection: default
+      workers: 5
+      prefetch_count: 10
+      dead_letter: fallback
+      queue:
+        name: DeleteProductsPurchaseConsumer
+        options:
+          durable: true
+          args:
+            x-dead-letter-exchange: fallback
+            x-dead-letter-routing-key: DeleteProductsPurchaseConsumer
+      runner:
+        type: http
+        options:
+          url: ${CLIPP_URL}/rpc/v1/consumers.DeleteProductsPurchaseConsumer
+          return-on-5xx: 3 # ExitNACK
+          headers:
+            Cannon-Authorization: ${CPF_CANNON_TOKEN}
+
+    UpdateProductsPurchaseConsumer:
+      connection: default
+      workers: 5
+      prefetch_count: 10
+      dead_letter: fallback
+      queue:
+        name: UpdateProductsPurchaseConsumer
+        options:
+          durable: true
+          args:
+            x-dead-letter-exchange: fallback
+            x-dead-letter-routing-key: UpdateProductsPurchaseConsumer
+      runner:
+        type: http
+        options:
+          url: ${CLIPP_URL}/rpc/v1/consumers.UpdateProductsPurchaseConsumer
+          return-on-5xx: 3 # ExitNACK
+          headers:
+            Cannon-Authorization: ${CPF_CANNON_TOKEN}
+
+    UpdatePurchaseExpenseConsumer:
+      connection: default
+      workers: 5
+      prefetch_count: 10
+      dead_letter: fallback
+      queue:
+        name: UpdatePurchaseExpenseConsumer
+        options:
+          durable: true
+          args:
+            x-dead-letter-exchange: fallback
+            x-dead-letter-routing-key: UpdatePurchaseExpenseConsumer
+      runner:
+        type: http
+        options:
+          url: ${CLIPP_URL}/rpc/v1/consumers.UpdatePurchaseExpenseConsumer
+          return-on-5xx: 3 # ExitNACK
+          headers:
+            Cannon-Authorization: ${CPF_CANNON_TOKEN}
+
+    RegisterPurchaseExpenseConsumer:
+      connection: default
+      workers: 5
+      prefetch_count: 10
+      dead_letter: fallback
+      queue:
+        name: RegisterPurchaseExpenseConsumer
+        options:
+          durable: true
+          args:
+            x-dead-letter-exchange: fallback
+            x-dead-letter-routing-key: RegisterPurchaseExpenseConsumer
+      runner:
+        type: http
+        options:
+          url: ${CLIPP_URL}/rpc/v1/consumers.RegisterPurchaseExpenseConsumer
+          return-on-5xx: 3 # ExitNACK
+          headers:
+            Cannon-Authorization: ${CPF_CANNON_TOKEN}
+
+    UpdateCostPurchaseConsumer:
+      connection: default
+      workers: 5
+      prefetch_count: 10
+      dead_letter: fallback
+      queue:
+        name: UpdateCostPurchaseConsumer
+        options:
+          durable: true
+          args:
+            x-dead-letter-exchange: fallback
+            x-dead-letter-routing-key: UpdateCostPurchaseConsumer
+      runner:
+        type: http
+        options:
+          url: ${CLIPP_URL}/rpc/v1/consumers.UpdateCostPurchaseConsumer
+          return-on-5xx: 3 # ExitNACK
+          headers:
+            Cannon-Authorization: ${CPF_CANNON_TOKEN}
+
+    DeletePurchaseExpenseConsumer:
+      connection: default
+      workers: 5
+      prefetch_count: 10
+      dead_letter: fallback
+      queue:
+        name: DeletePurchaseExpenseConsumer
+        options:
+          durable: true
+          args:
+            x-dead-letter-exchange: fallback
+            x-dead-letter-routing-key: DeletePurchaseExpenseConsumer
+      runner:
+        type: http
+        options:
+          url: ${CLIPP_URL}/rpc/v1/consumers.DeletePurchaseExpenseConsumer
+          return-on-5xx: 3 # ExitNACK
+          headers:
+            Cannon-Authorization: ${CPF_CANNON_TOKEN}
+
+    UpdateProductsTaxesPurchaseConsumer:
+      connection: default
+      workers: 5
+      prefetch_count: 10
+      dead_letter: fallback
+      queue:
+        name: UpdateProductsTaxesPurchaseConsumer
+        options:
+          durable: true
+          args:
+            x-dead-letter-exchange: fallback
+            x-dead-letter-routing-key: UpdateProductsTaxesPurchaseConsumer
+      runner:
+        type: http
+        options:
+          url: ${CLIPP_URL}/rpc/v1/consumers.UpdateProductsTaxesPurchaseConsumer
+          return-on-5xx: 3 # ExitNACK
+          headers:
+            Cannon-Authorization: ${CPF_CANNON_TOKEN}
+
+    # MetricConsumer:
+    #   connection: default
+    #   workers: 5
+    #   prefetch_count: 10
+    #   dead_letter: fallback
+    #   queue:
+    #     name: MetricConsumer
+    #     options:
+    #       durable: true
+    #       args:
+    #         x-dead-letter-exchange: fallback
+    #         x-dead-letter-routing-key: MetricConsumer
+    #   runner:
+    #     type: http
+    #     options:
+    #       url: ${CLIPP_URL}/rpc/v1/application.MetricConsumer
+    #       return-on-5xx: 3 # ExitNACK
+    #       headers:
+    #         Cannon-Authorization: ${CPF_CANNON_TOKEN}
+    #
