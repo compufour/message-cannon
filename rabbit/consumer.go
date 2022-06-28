@@ -59,8 +59,8 @@ func (c *consumer) Run() {
 		defer cancel()
 		for {
 			select {
-			case <-dying:
-				println("caiu no wait")
+			case err := <-dying:
+				println("caiu no wait", err)
 				// When dying we wait for any remaining worker to finish
 				return errors.New("crash")
 			case err := <-closed:
