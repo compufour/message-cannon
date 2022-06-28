@@ -60,9 +60,9 @@ func (c *consumer) Run() {
 		for {
 			select {
 			case <-dying:
+				println("caiu no wait")
 				// When dying we wait for any remaining worker to finish
-				c.workerPool.Wait()
-				return nil
+				return errors.New("crash")
 			case err := <-closed:
 				return err
 			case msg, ok := <-d:

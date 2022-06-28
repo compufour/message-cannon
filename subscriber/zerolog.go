@@ -74,11 +74,8 @@ func getLevel(topic string) zerolog.Level {
 
 // NewLogger create an Logger.
 func NewLogger(w io.Writer, sub hub.Subscription, development bool) *Logger {
-	zerolog.SetGlobalLevel(zerolog.InfoLevel)
-	if development {
-		w = zerolog.ConsoleWriter{Out: w}
-		zerolog.SetGlobalLevel(zerolog.DebugLevel)
-	}
+	w = zerolog.ConsoleWriter{Out: w}
+	zerolog.SetGlobalLevel(zerolog.DebugLevel)
 
 	return &Logger{
 		Logger: zerolog.New(w).With().Timestamp().Logger(),
