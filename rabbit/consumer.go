@@ -142,9 +142,9 @@ func (c *consumer) processMessage(ctx context.Context, msg amqp.Delivery) {
 	case runner.ExitACK:
 		err = msg.Ack(false)
 	case runner.ExitFailed:
-		err = msg.Reject(true)
+		err = msg.Reject(false)
 	case runner.ExitRetry, runner.ExitNACKRequeue, runner.ExitTimeout:
-		err = msg.Nack(false, true)
+		err = msg.Nack(false, false)
 	case runner.ExitNACK:
 		err = msg.Nack(false, false)
 	default:
@@ -153,7 +153,7 @@ func (c *consumer) processMessage(ctx context.Context, msg amqp.Delivery) {
 			Body:   []byte("the runner returned an unexpected exitStatus. Message will be requeued."),
 			Fields: hub.Fields{"status": status},
 		})
-		err = msg.Reject(true)
+		err = msg.Reject(false)
 	}
 	if err != nil {
 		c.hub.Publish(hub.Message{
