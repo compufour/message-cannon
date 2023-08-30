@@ -38,6 +38,27 @@ The simple way to run message-cannon is to run the docker image for it. This is 
       - my-app
 ```
 
+## Running with Go on local
+```
+RABBITMQ_HOST=YOUR-NETWORK-IP \
+CPF_CANNON_TOKEN=CANNON-TOKEN-HERE \
+CLIPP_URL=http://YOUR-NETWORK-IP \
+XML_PROCESSOR_URL=http://YOUR-NETWORK-IP \
+CONVERTER_PROCESSOR_URL=http://YOUR-NETWORK-IP \
+REPORT_PROCESSOR_URL=http://YOUR-NETWORK-IP \
+EFD_PROCESSOR_URL=http://YOUR-NETWORK-IP \
+go run main.go launch -d --config=/...ABSOLUTE-PATH.../compufacil/Backend/config/cannon.yml
+```
+
+## Build updated image and run with local docker
+`docker build -t message-cannon:dev .`
+
+In the compufacil project's docker-compose.yml, change:
+```
+cannon:
+    image: message-cannon:dev
+```
+
 ## Manual
 You can get the binaries and use it. Just go to [releases](https://github.com/leandro-lugaresi/message-cannon/releases) and download the newest binary for your SO (deb, rpm, snap are also available)
 
