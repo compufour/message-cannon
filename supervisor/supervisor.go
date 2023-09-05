@@ -1,6 +1,7 @@
 package supervisor
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -39,6 +40,7 @@ func (m *Manager) work() {
 
 // Start all the consumers from factories
 func (m *Manager) Start(fs []Factory) error {
+	fmt.Println("Start all the consumers from factories")
 	var err error
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -52,10 +54,12 @@ func (m *Manager) Start(fs []Factory) error {
 				return
 			}
 			for _, c := range cs {
+				fmt.Println("Consumers for ", c.Name())
 				consumers[c.Name()] = c
 			}
 		}
-		for _, c := range consumers {
+		for name, c := range consumers {
+			fmt.Println("Run ", name)
 			c.Run()
 		}
 	}
@@ -91,6 +95,7 @@ func (m *Manager) checkConsumers() {
 func (m *Manager) restartDeadConsumers(factories map[string]Factory, consumers map[string]Consumer) {
 	for name, c := range consumers {
 		if !c.Alive() {
+			fmt.Println("Restart dead consumer: " + name)
 			m.hub.Publish(hub.Message{
 				Name: "supervisor.recreating_consumer.info",
 				Body: []byte("Recreating one consumer"),

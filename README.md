@@ -39,6 +39,10 @@ The simple way to run message-cannon is to run the docker image for it. This is 
 ```
 
 ## Running with Go on local
+Stop the compufacil-cannon:
+`docker stop compufacil-cannon-1`
+
+And run:
 ```
 RABBITMQ_HOST=YOUR-NETWORK-IP \
 CPF_CANNON_TOKEN=CANNON-TOKEN-HERE \
