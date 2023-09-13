@@ -141,7 +141,7 @@ func (c *consumer) processMessage(ctx context.Context, msg amqp.Delivery) {
 			fields["error"] = e
 		}
 	}
-	fmt.Println("Publish message")
+	fmt.Println("Publish message in " + c.name)
 	c.hub.Publish(hub.Message{
 		Name:   topic,
 		Fields: fields,
