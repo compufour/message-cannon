@@ -1,6 +1,7 @@
 package rabbit
 
 import (
+	"fmt"
 	"net"
 	"strconv"
 	"strings"
@@ -284,11 +285,13 @@ func (f *Factory) getChannel(connectionName string) (*amqp.Channel, error) {
 	return ch, errCH
 }
 
-func openConnection(config Connection, version string) (*amqp.Connection, error) {
+func openConnection(config Connection, version string, connectionName string) (*amqp.Connection, error) {
 	var conn *amqp.Connection
 	err := retry.Do(func() error {
-		var err error
-		conn, err = amqp.DialConfig(config.DSN, amqp.Config{
+		fmt.Printf("Attempting to open RabbitMQ connection for %s\n", connectionName)
+
+		var dialErr error
+		conn, dialErr = amqp.DialConfig(config.DSN, amqp.Config{
 			Dial: func(network, addr string) (net.Conn, error) {
 				return net.DialTimeout(network, addr, config.Timeout)
 			},
@@ -297,8 +300,20 @@ func openConnection(config Connection, version string) (*amqp.Connection, error)
 				"version": version,
 			},
 		})
-		return err
+
+		if dialErr != nil {
+			fmt.Printf("Failed to open RabbitMQ connection for %s: %s\n", connectionName, dialErr)
+		} else {
+			fmt.Printf("RabbitMQ connection opened successfully for %s\n", connectionName)
+		}
+
+		return dialErr
 	}, 5, config.Sleep)
+
+	if err != nil {
+		fmt.Printf("Failed to open RabbitMQ connection for %s after retries: %s\n", connectionName, err)
+	}
+
 	return conn, err
 }
 
