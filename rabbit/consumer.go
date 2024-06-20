@@ -3,6 +3,7 @@ package rabbit
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"gopkg.in/tomb.v2"
@@ -53,13 +54,16 @@ func (c *consumer) Run() {
 			})
 			return err
 		}
+		fmt.Println("Consumer run on " + c.name)
 		dying := c.t.Dying()
 		closed := c.channel.NotifyClose(make(chan *amqp.Error))
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
+		fmt.Println("Starting for on " + c.name)
 		for {
 			select {
 			case <-dying:
+				fmt.Println("Waiting for any remaining worker to finish at " + c.name)
 				// When dying we wait for any remaining worker to finish
 				c.workerPool.Wait()
 				return nil
@@ -74,16 +78,19 @@ func (c *consumer) Run() {
 					})
 					return errors.New("receive an empty delivery")
 				}
+				fmt.Println("Acquire blocks until one of the workers finishes at " + c.name)
 				// When maxWorkers goroutines are in flight, Acquire blocks until one of the
 				// workers finishes.
 				c.workerPool.Acquire()
 				go func(msg amqp.Delivery) {
+					fmt.Println("Start goroutine on " + c.name)
 					nctx := ctx
 					if c.timeout >= time.Second {
 						var canc context.CancelFunc
 						nctx, canc = context.WithTimeout(ctx, c.timeout)
 						defer canc()
 					}
+					fmt.Println("Process message of " + c.name)
 					c.processMessage(nctx, msg)
 					c.workerPool.Release()
 				}(msg)
@@ -134,6 +141,7 @@ func (c *consumer) processMessage(ctx context.Context, msg amqp.Delivery) {
 			fields["error"] = e
 		}
 	}
+	fmt.Println("Publish message in " + c.name)
 	c.hub.Publish(hub.Message{
 		Name:   topic,
 		Fields: fields,
